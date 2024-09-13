@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="nic_weber.DeckOfCards" Version="0.1.0" />
+  </ItemGroup>
+
 </Project>
