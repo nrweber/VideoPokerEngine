@@ -4,10 +4,20 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <PackageId>nic_weber.VideoPoker</PackageId>
+    <Version>0.1.0</Version>
+    <Author>Nic Weber</Author>
+    <Product>Video Poker Engine</Product>
+    <Description>Implementations of the back end processing for Video Poker</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="nic_weber.DeckOfCards" Version="0.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
 </Project>
