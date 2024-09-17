@@ -355,6 +355,19 @@ public class JacksOrBetterVideoPokerTest
                     });
         Assert.Equal(JacksOrBetterVideoPoker.HandTypes.None, result);
     }
+    
+    [Fact]
+    public void ScoreHand_NothingPairOfLowCards()
+    {
+        var result = JacksOrBetterVideoPoker.ScoreHand(new Card[]{
+                        new Card(Suits.Club, Values.Ace),
+                        new Card(Suits.Spade, Values.Ten),
+                        new Card(Suits.Club, Values.Jack),
+                        new Card(Suits.Diamond, Values.Ten),
+                        new Card(Suits.Club, Values.Four)
+                    });
+        Assert.Equal(JacksOrBetterVideoPoker.HandTypes.None, result);
+    }
 
 
     [Fact]

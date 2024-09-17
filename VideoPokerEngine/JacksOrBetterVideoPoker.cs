@@ -171,7 +171,7 @@ public class JacksOrBetterVideoPoker
         {
             foreach(var c in counts)
             {
-                if(c.Count == 2 && (c.Value > Values.Nine || c.Value == Values.Ace))
+                if(c.Count == 2 && (c.Value > Values.Ten || c.Value == Values.Ace))
                     return HandTypes.JacksOrBetter;
             }
         }
