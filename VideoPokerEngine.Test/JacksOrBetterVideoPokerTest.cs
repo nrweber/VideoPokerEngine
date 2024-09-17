@@ -5,7 +5,7 @@ namespace VideoPokerEngine.Test;
 public class JacksOrBetterVideoPokerTest
 {
     [Fact]
-    public void NewGame_StateIsNewGame_NoCardsOnTable()
+    public void NewGame_StateIsNewGame_FillerCardsOnTable()
     {
         JacksOrBetterVideoPoker game = new();
        
@@ -13,7 +13,7 @@ public class JacksOrBetterVideoPokerTest
         Assert.Equal(JacksOrBetterVideoPoker.GameState.NewGame, game.State);
        
         //Cards is empty
-        Assert.Empty(game.Cards);
+        Assert.Equal(5, game.Cards.Length);
     }
 
     [Fact]
@@ -76,6 +76,35 @@ public class JacksOrBetterVideoPokerTest
        game.ToggleHold(index);
 
        Assert.False(game.Holds[index]);
+    }
+
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(3)]
+    [InlineData(4)]
+    public void OnNewGameOrGameOver_HoldDoesNothing(int index)
+    {
+       JacksOrBetterVideoPoker game = new();
+       //Before first deal
+       // Fake hand with all set to Hold
+       Assert.True(game.Holds[index]);
+       game.ToggleHold(index);
+       Assert.True(game.Holds[index]);
+      
+       //First Deal and hold
+       game.Deal();
+       Assert.False(game.Holds[index]);
+       game.ToggleHold(index);
+       Assert.True(game.Holds[index]);
+
+       //Game Over
+       game.Deal();
+       Assert.True(game.Holds[index]);
+       game.ToggleHold(index);
+       Assert.True(game.Holds[index]);
     }
 
 
@@ -172,32 +201,57 @@ public class JacksOrBetterVideoPokerTest
 
 
     [Fact]
-    public void NewGame_GameResultIsSetToGameNotOver()
+    public void NewGame_HandValueIsSetToRoyalFlush()
     {
         JacksOrBetterVideoPoker game = new();
 
-        Assert.Equal(JacksOrBetterVideoPoker.GameResult.GameNotOver, game.Result);
+        // Dummy hand at the start so that there is always cards ready to be displayed
+        // Set to always show a royal flush on startup
+        Assert.Equal(JacksOrBetterVideoPoker.HandTypes.RoyalFlush, game.HandValue);
     }
 
 
+    // Fragle test but I couldn't think of a better way to test it.
+    // Hopefully within 100 games one of them has something in it
+    // so we know the hand is being evaluated after the first deal
     [Fact]
-    public void AfterFirstDeal_GameResultIsSetToGameNotOver()
+    public void AfterFirstDeal_HandValueIsSetToGameNotOver()
     {
-        JacksOrBetterVideoPoker game = new();
-        game.Deal();
+        bool found = false;
+        for(int i = 0; i < 100; i++)
+        {
+            JacksOrBetterVideoPoker game = new();
+            game.Deal();
+                
+            if(game.HandValue != JacksOrBetterVideoPoker.HandTypes.None)
+            {
+                found = true;
+            }
+        }
 
-        Assert.Equal(JacksOrBetterVideoPoker.GameResult.GameNotOver, game.Result);
+        Assert.True(found);
     }
-
-
+    
+    // Fragle test but I couldn't think of a better way to test it.
+    // Hopefully within 100 games one of them has something in it
+    // so we know the hand is being evaluated after the first deal
     [Fact]
-    public void AfterSecondDeal_GameResultIsSetToSomethingOtherThanGameNotOver()
+    public void AfterSecondDeal_HandValueIsSetToGameNotOver()
     {
-        JacksOrBetterVideoPoker game = new();
-        game.Deal();
-        game.Deal();
+        bool found = false;
+        for(int i = 0; i < 100; i++)
+        {
+            JacksOrBetterVideoPoker game = new();
+            game.Deal();
+            game.Deal();
+                
+            if(game.HandValue != JacksOrBetterVideoPoker.HandTypes.None)
+            {
+                found = true;
+            }
+        }
 
-        Assert.NotEqual(JacksOrBetterVideoPoker.GameResult.GameNotOver, game.Result);
+        Assert.True(found);
     }
 
 
@@ -299,7 +353,7 @@ public class JacksOrBetterVideoPokerTest
                         new Card(Suits.Club, Values.Four),
                         new Card(Suits.Spade, Values.Two)
                     });
-        Assert.Equal(JacksOrBetterVideoPoker.GameResult.None, result);
+        Assert.Equal(JacksOrBetterVideoPoker.HandTypes.None, result);
     }
 
 
@@ -313,7 +367,7 @@ public class JacksOrBetterVideoPokerTest
                         new Card(Suits.Club, Values.Four),
                         new Card(Suits.Spade, Values.Ace)
                     });
-        Assert.Equal(JacksOrBetterVideoPoker.GameResult.JacksOrBetter, result);
+        Assert.Equal(JacksOrBetterVideoPoker.HandTypes.JacksOrBetter, result);
     }
     
     [Fact]
@@ -326,7 +380,7 @@ public class JacksOrBetterVideoPokerTest
                         new Card(Suits.Club, Values.Two),
                         new Card(Suits.Spade, Values.Ace)
                     });
-        Assert.Equal(JacksOrBetterVideoPoker.GameResult.TwoPair, result);
+        Assert.Equal(JacksOrBetterVideoPoker.HandTypes.TwoPair, result);
     }
 
 
@@ -340,7 +394,7 @@ public class JacksOrBetterVideoPokerTest
                         new Card(Suits.Heart, Values.Two),
                         new Card(Suits.Spade, Values.Five)
                     });
-        Assert.Equal(JacksOrBetterVideoPoker.GameResult.ThreeOfAKind, result);
+        Assert.Equal(JacksOrBetterVideoPoker.HandTypes.ThreeOfAKind, result);
     }
     
     [Fact]
@@ -353,7 +407,7 @@ public class JacksOrBetterVideoPokerTest
                         new Card(Suits.Heart, Values.Two),
                         new Card(Suits.Spade, Values.Five)
                     });
-        Assert.Equal(JacksOrBetterVideoPoker.GameResult.FourOfAKind, result);
+        Assert.Equal(JacksOrBetterVideoPoker.HandTypes.FourOfAKind, result);
     }
     
     [Fact]
@@ -366,7 +420,7 @@ public class JacksOrBetterVideoPokerTest
                         new Card(Suits.Heart, Values.Five),
                         new Card(Suits.Spade, Values.Five)
                     });
-        Assert.Equal(JacksOrBetterVideoPoker.GameResult.FullHouse, result);
+        Assert.Equal(JacksOrBetterVideoPoker.HandTypes.FullHouse, result);
     }
 
     [Fact]
@@ -379,7 +433,7 @@ public class JacksOrBetterVideoPokerTest
                         new Card(Suits.Diamond, Values.Seven),
                         new Card(Suits.Diamond, Values.Eight)
                     });
-        Assert.Equal(JacksOrBetterVideoPoker.GameResult.Flush, result);
+        Assert.Equal(JacksOrBetterVideoPoker.HandTypes.Flush, result);
     }
 
     
@@ -393,7 +447,7 @@ public class JacksOrBetterVideoPokerTest
                         new Card(Suits.Club, Values.Four),
                         new Card(Suits.Heart, Values.Six)
                     });
-        Assert.Equal(JacksOrBetterVideoPoker.GameResult.Straight, result);
+        Assert.Equal(JacksOrBetterVideoPoker.HandTypes.Straight, result);
     }
 
 
@@ -407,7 +461,7 @@ public class JacksOrBetterVideoPokerTest
                         new Card(Suits.Club, Values.Four),
                         new Card(Suits.Heart, Values.Ace)
                     });
-        Assert.Equal(JacksOrBetterVideoPoker.GameResult.Straight, result);
+        Assert.Equal(JacksOrBetterVideoPoker.HandTypes.Straight, result);
     }
    
 
@@ -421,7 +475,7 @@ public class JacksOrBetterVideoPokerTest
                         new Card(Suits.Club, Values.Jack),
                         new Card(Suits.Heart, Values.Ace)
                     });
-        Assert.Equal(JacksOrBetterVideoPoker.GameResult.Straight, result);
+        Assert.Equal(JacksOrBetterVideoPoker.HandTypes.Straight, result);
     }
 
     [Fact]
@@ -434,7 +488,7 @@ public class JacksOrBetterVideoPokerTest
                         new Card(Suits.Spade, Values.Four),
                         new Card(Suits.Spade, Values.Six)
                     });
-        Assert.Equal(JacksOrBetterVideoPoker.GameResult.StraightFlush, result);
+        Assert.Equal(JacksOrBetterVideoPoker.HandTypes.StraightFlush, result);
     }
 
     [Fact]
@@ -447,7 +501,7 @@ public class JacksOrBetterVideoPokerTest
                         new Card(Suits.Diamond, Values.Four),
                         new Card(Suits.Diamond, Values.Ace)
                     });
-        Assert.Equal(JacksOrBetterVideoPoker.GameResult.StraightFlush, result);
+        Assert.Equal(JacksOrBetterVideoPoker.HandTypes.StraightFlush, result);
     }
 
     [Fact]
@@ -460,7 +514,7 @@ public class JacksOrBetterVideoPokerTest
                         new Card(Suits.Club, Values.Jack),
                         new Card(Suits.Club, Values.Ace)
                     });
-        Assert.Equal(JacksOrBetterVideoPoker.GameResult.RoyalFlush, result);
+        Assert.Equal(JacksOrBetterVideoPoker.HandTypes.RoyalFlush, result);
     }
 
 

@@ -1,5 +1,4 @@
-﻿using System.Collections.ObjectModel;
-using nic_weber.DeckOfCards;
+﻿using nic_weber.DeckOfCards;
 
 namespace VideoPokerEngine;
 
@@ -16,9 +15,8 @@ public class JacksOrBetterVideoPoker
         GameOver
     };
 
-    public enum GameResult
+    public enum HandTypes
     {
-        GameNotOver,
         None,
         JacksOrBetter,
         TwoPair,
@@ -33,6 +31,9 @@ public class JacksOrBetterVideoPoker
 
 
 
+
+    public GameState State { get; private set; } = GameState.NewGame;
+    public HandTypes HandValue { get; private set; } = HandTypes.None;
 
     public Card[] Cards 
     { 
@@ -50,15 +51,24 @@ public class JacksOrBetterVideoPoker
         }
     }
 
-    public GameState State { get; private set; } = GameState.NewGame;
-    public GameResult Result { get; private set; } = GameResult.GameNotOver;
+
+
 
     private List<CardAndState> _table = new();
     private StandardPokerDeck _deck = default!;
 
 
+
+
     public JacksOrBetterVideoPoker() 
-    { 
+    {
+        //So that the _table always has 5 cards on it. Load up a royal flush with them all on hold.
+        _table.Add(new CardAndState(new Card(Suits.Spade, Values.Ace), true));
+        _table.Add(new CardAndState(new Card(Suits.Spade, Values.King), true));
+        _table.Add(new CardAndState(new Card(Suits.Spade, Values.Queen), true));
+        _table.Add(new CardAndState(new Card(Suits.Spade, Values.Jack), true));
+        _table.Add(new CardAndState(new Card(Suits.Spade, Values.Ten), true));
+        HandValue = HandTypes.RoyalFlush;
     }
 
 
@@ -77,6 +87,7 @@ public class JacksOrBetterVideoPoker
                 _table.Add(new CardAndState(_deck.Pop()!));
 
             State = GameState.FirstDeal;
+            HandValue = ScoreHand(Cards);
         }
         else if(GameState.FirstDeal == State)
         {
@@ -89,12 +100,16 @@ public class JacksOrBetterVideoPoker
             }
 
             State = GameState.GameOver;
-            Result = ScoreHand(Cards);
+            HandValue = ScoreHand(Cards);
         }
     }
 
+
     public void ToggleHold(int position)
     {
+        if(GameState.FirstDeal != State)
+            return;
+
         if(position >= 0 && _table.Count > position)
         {
             _table[position] = _table[position] with {
@@ -103,7 +118,8 @@ public class JacksOrBetterVideoPoker
         }
     }
 
-    public static GameResult ScoreHand(Card[] cards)
+
+    public static HandTypes ScoreHand(Card[] cards)
     {
         if(cards.Length != 5)
             throw new ArgumentException("need 5 cards");
@@ -119,16 +135,16 @@ public class JacksOrBetterVideoPoker
         if(isFlush && isStraight)
         {
             if(values[0] == Values.Ace && values[4] == Values.King)
-                return GameResult.RoyalFlush;
-            return GameResult.StraightFlush;
+                return HandTypes.RoyalFlush;
+            return HandTypes.StraightFlush;
         }
         else if(isFlush)
         {
-            return GameResult.Flush;
+            return HandTypes.Flush;
         }
         else if(isStraight)
         {
-            return GameResult.Straight;
+            return HandTypes.Straight;
         }
 
 
@@ -139,16 +155,16 @@ public class JacksOrBetterVideoPoker
         {
             var containsAFour = 1 == (counts.Where(c => c.Count == 4).ToList().Count);
             if(containsAFour)
-                return GameResult.FourOfAKind;
-            return GameResult.FullHouse;
+                return HandTypes.FourOfAKind;
+            return HandTypes.FullHouse;
         }
 
         if(counts.Count == 3)
         {
             var containsAThree = 1 == (counts.Where(c => c.Count == 3).ToList().Count);
             if(containsAThree)
-                return GameResult.ThreeOfAKind;
-            return GameResult.TwoPair;
+                return HandTypes.ThreeOfAKind;
+            return HandTypes.TwoPair;
         }
 
         if(counts.Count == 4)
@@ -156,10 +172,10 @@ public class JacksOrBetterVideoPoker
             foreach(var c in counts)
             {
                 if(c.Count == 2 && (c.Value > Values.Nine || c.Value == Values.Ace))
-                    return GameResult.JacksOrBetter;
+                    return HandTypes.JacksOrBetter;
             }
         }
 
-        return GameResult.None;
+        return HandTypes.None;
     }
 }
